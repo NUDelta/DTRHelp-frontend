@@ -1,6 +1,6 @@
 # DTRHelp
 
-A lightweight tool for NU CS 394 DTR teams to anonymously share concerns and connect mentees with mentors.
+A lightweight tool for NU CS 315 DTR teams to anonymously share concerns and connect mentees with mentors.
 
 ## Features
 
