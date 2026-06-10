@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "./supabaseclient";
-import { getName, getRole, getMaxMentees, setName, setRole, setMaxMentees, clearSession } from "./auth";
+import { getName, getRole, getMaxMentees, getConsent, setName, setRole, setMaxMentees, setConsent, clearSession } from "./auth";
 import people from "./hard-coded-data/people.json";
 
 const MEETING_GUIDELINES = `Be empathetic and non-judgmental. Stay positive and relatable — share something real from your own experience. Make the topic feel approachable, not scary. Before the meeting ends, help them commit to one concrete action or deliverable they'll do during or right after — even something small. The goal is to show them the first step isn't as hard as it looks.`;
@@ -113,6 +113,10 @@ export default function PairConnect() {
   const [myRatings, setMyRatings] = useState({});
   const [myMatches, setMyMatches] = useState([]);
 
+  // Consent
+  const [consentGiven, setConsentGiven] = useState(getConsent);
+  const [consentChecked, setConsentChecked] = useState(false);
+
   // Matching
   const [matchingLoading, setMatchingLoading] = useState(false);
   const [matchingError, setMatchingError] = useState("");
@@ -210,6 +214,16 @@ export default function PairConnect() {
     setMyMatch(null);
     setMyMatches([]);
     setMyRatings({});
+    setConsentGiven(false);
+    setConsentChecked(false);
+  }
+
+  // -------------------------------------------------------
+  // Consent
+  // -------------------------------------------------------
+  function confirmConsent() {
+    setConsent();
+    setConsentGiven(true);
   }
 
   // -------------------------------------------------------
@@ -440,6 +454,63 @@ export default function PairConnect() {
         <div style={{ marginTop: 28 }}>
           <strong style={{ fontSize: 14 }}>Mentee Pool</strong>
           <div style={{ marginTop: 10 }}><Pool pool={pool} /></div>
+        </div>
+      </div>
+    );
+  }
+
+  // -------------------------------------------------------
+  // STEP 2.5: Consent / confidentiality gate
+  // -------------------------------------------------------
+  if (!consentGiven) {
+    const isMentee = role === "mentee";
+    return (
+      <div style={{ maxWidth: 500, margin: "40px auto", fontFamily: "Arial", padding: "0 16px" }}>
+        <Nav name={name} onReset={resetSession} />
+        <div style={{ border: "1px solid #ddd", padding: 20, borderRadius: 4 }}>
+          <strong style={{ fontSize: 17 }}>{isMentee ? "Before you continue" : "Confidentiality Notice"}</strong>
+          <div style={{ marginTop: 14, fontSize: 14, lineHeight: 1.6, color: "#333" }}>
+            {isMentee ? (
+              <>
+                <p style={{ margin: "0 0 12px 0" }}>
+                  Your regulation gaps and previously tracked issues from CAP notes (recorded by Haoqi)
+                  will be shared with your matched mentor. This helps your mentor connect your concerns
+                  to relevant regulatory guidelines — it&apos;s essential to how this process works.
+                </p>
+                <p style={{ margin: 0 }}>
+                  Please confirm below to continue.
+                </p>
+              </>
+            ) : (
+              <>
+                <p style={{ margin: "0 0 12px 0" }}>
+                  Mentee concerns shared through this system may include sensitive personal or academic
+                  information. By continuing, you agree to keep all mentee information strictly
+                  confidential — do not share it outside this mentoring relationship.
+                </p>
+              </>
+            )}
+          </div>
+          <label style={{ display: "flex", alignItems: "flex-start", gap: 10, marginTop: 18, cursor: "pointer", fontSize: 14 }}>
+            <input
+              type="checkbox"
+              checked={consentChecked}
+              onChange={(e) => setConsentChecked(e.target.checked)}
+              style={{ marginTop: 2, flexShrink: 0 }}
+            />
+            <span>
+              {isMentee
+                ? "I understand and consent to my regulation gaps being shared with my mentor"
+                : "I agree to keep mentee information confidential"}
+            </span>
+          </label>
+          <button
+            onClick={confirmConsent}
+            disabled={!consentChecked}
+            style={{ marginTop: 18, padding: "8px 18px" }}
+          >
+            {isMentee ? "Continue" : "I agree, continue"}
+          </button>
         </div>
       </div>
     );
